@@ -1,15 +1,34 @@
-# 1️⃣ Chọn base image JDK 17 nhẹ
-FROM eclipse-temurin:17-jdk-alpine
+# ===============================
+# 1. Build stage
+# ===============================
+FROM maven:3.9.6-eclipse-temurin-17 AS builder
 
-# 2️⃣ Tạo thư mục tạm
-VOLUME /tmp
+# Set working directory inside container
+WORKDIR /app
 
-# 3️⃣ Copy file jar từ target
-ARG JAR_FILE=target/*.jar
-COPY ${JAR_FILE} app.jar
+# Copy pom.xml and download dependencies (cache layer)
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
 
-# 4️⃣ Expose port (phải trùng với server.port trong application.yml)
-EXPOSE 10000
+# Copy source code
+COPY src ./src
 
-# 5️⃣ Chạy ứng dụng
-ENTRYPOINT ["java","-jar","/app.jar"]
+# Package application (skip tests để build nhanh hơn)
+RUN mvn clean package -DskipTests
+
+# ===============================
+# 2. Run stage
+# ===============================
+FROM eclipse-temurin:17-jdk
+
+# Set working directory
+WORKDIR /app
+
+# Copy JAR từ build stage
+COPY --from=builder /app/target/*.jar app.jar
+
+# App sẽ chạy ở port 8080 (Render yêu cầu)
+EXPOSE 8080
+
+# Run Spring Boot app
+ENTRYPOINT ["java", "-jar", "app.jar"]
