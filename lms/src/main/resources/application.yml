@@ -30,3 +30,6 @@ cloudinary:
 
 jwt:
   secret_key: taideptrai_taideptrai_taideptrai_123456
+
+server:
+  port: 10000
