@@ -16,7 +16,7 @@ public interface TestSubmissionRepository extends JpaRepository<TestSubmission, 
     List<TestSubmission> findByUserAndTest(Users user, Test test);
     Optional<TestSubmission> findByUserAndTestAndStatus(Users user, Test test, SubmissionStatus status);
     List<TestSubmission> findByTest_TestId(Integer testId);
-
+    List<TestSubmission> findByStatus(SubmissionStatus status);
     long countByTest_TestId(Integer testId);
 
     @Query("SELECT FUNCTION('YEAR', s.startedAt) AS year, FUNCTION('WEEK', s.startedAt) AS week, COUNT(s) AS count " +

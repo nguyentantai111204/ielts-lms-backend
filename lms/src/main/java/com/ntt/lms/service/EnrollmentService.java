@@ -1,5 +1,6 @@
 package com.ntt.lms.service;
 
+import com.ntt.lms.dto.EnrollmentRequestDTO;
 import com.ntt.lms.dto.StudentDto;
 import com.ntt.lms.pojo.Course;
 import com.ntt.lms.pojo.Enrollment;
@@ -9,10 +10,7 @@ import com.ntt.lms.repository.CourseRepository;
 import com.ntt.lms.repository.EnrollmentRepository;
 import com.ntt.lms.repository.StudentRepository;
 import com.ntt.lms.utils.JwtService;
-import com.ntt.lms.validator.CourseValidator;
-import com.ntt.lms.validator.InstructorValidator;
-import com.ntt.lms.validator.StudentValidator;
-import com.ntt.lms.validator.UserValidator;
+import com.ntt.lms.validator.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,17 +30,17 @@ public class EnrollmentService {
 
     private final StudentValidator studentValidator;
     private final CourseValidator courseValidator;
-    private final InstructorValidator instructorValidator;
     private final UserValidator userValidator;
+    private final PermissionValidator permissionValidator;
+    private final AdminValidator adminValidator;
 
-    public void enrollInCourse(Enrollment request) {
+    public void enrollInCourse(EnrollmentRequestDTO request) {
         Users currentUser = JwtService.getCurrentUser();
         userValidator.validateUserAuthenticate(currentUser);
-        instructorValidator.validateHasPermissionInstructor(currentUser);
+        permissionValidator.validateHasPermissionAdminOrInstructor(currentUser);
 
-        Student student = studentValidator.validateIsExitsStudent(request.getStudent().getUserAccountId());
-
-        Course course = courseValidator.validateIsExitsCourseWithId(request.getCourse().getCourseId());
+        Student student = studentValidator.validateIsExitsStudent(request.getStudentId());
+        Course course = courseValidator.validateIsExitsCourseWithId(request.getCourseId());
 
         if (enrollmentRepository.existsByStudentAndCourse(student, course)) {
             throw new IllegalArgumentException("Học sinh đã đăng ký khóa học này.");
@@ -53,17 +51,20 @@ public class EnrollmentService {
         enrollment.setCourse(course);
         enrollment.setEnrollmentDate(new Date());
         enrollment.setStatus(Enrollment.EnrollmentStatus.ACTIVE);
+
         enrollmentRepository.save(enrollment);
+
         notificationsService.sendNotification(
                 "Thêm sinh viên " + student.getUserAccountId() + " vào khóa học thành công",
                 course.getInstructorId().getUserAccountId()
         );
     }
 
+
     public List<StudentDto> viewEnrolledStudents(int courseId){
         Users currentUser = JwtService.getCurrentUser();
         userValidator.validateUserAuthenticate(currentUser);
-        instructorValidator.validateHasPermissionInstructor(currentUser);
+        permissionValidator.validateHasPermissionAdminOrInstructor(currentUser);
 
         Course currentCourse = this.courseRepository.findById(courseId).orElseThrow(()-> new EntityNotFoundException("Khoa hoc khong ton tai"));
 
@@ -78,7 +79,7 @@ public class EnrollmentService {
     public void removeEnrolledStudent(int courseId, int studentId){
         Users currentUser = JwtService.getCurrentUser();
         userValidator.validateUserAuthenticate(currentUser);
-        instructorValidator.validateHasPermissionInstructor(currentUser);
+        adminValidator.validateHasAdminPermistion(currentUser);
 
         Course course = this.courseRepository.findById(courseId).orElseThrow(()-> new IllegalArgumentException("Khoa hoc khong ton tai"));
         Student student  = this.studentRepository.findById(studentId).orElseThrow(()-> new IllegalArgumentException("Sinh vien khong ton tai"));

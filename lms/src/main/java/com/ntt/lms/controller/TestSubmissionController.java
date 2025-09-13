@@ -1,5 +1,6 @@
 package com.ntt.lms.controller;
 
+import com.ntt.lms.dto.HistoryTestDTO;
 import com.ntt.lms.dto.TestSubmissionDTO;
 import com.ntt.lms.pojo.*;
 import com.ntt.lms.repository.TestRepository;
@@ -200,6 +201,11 @@ public class TestSubmissionController {
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Lỗi server: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/history_tests")
+    public ResponseEntity<List<HistoryTestDTO>> getAllSubmissionsByUser() {
+        return ResponseEntity.ok(testSubmissionService.getSubmissionsByUser());
     }
 
 

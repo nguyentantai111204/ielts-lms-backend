@@ -17,7 +17,6 @@ public class TestNotificationService {
     private final NotificationRepository notificationRepository;
     private final UsersRepository usersRepository;
 
-    // Gửi thông báo khi user bắt đầu làm bài test
     @Transactional
     public void sendTestStartedNotification(int userId, int testId, String testTitle) {
         Users user = usersRepository.findById(userId)

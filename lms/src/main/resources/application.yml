@@ -2,9 +2,9 @@ spring:
   application:
     name: lms
   datasource:
-    url: ${SPRING_DATASOURCE_URL}
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
+    url: jdbc:mysql://localhost:3306/lms
+    username: root
+    password: Admin@123
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -24,12 +24,12 @@ spring:
       max-request-size: 50MB
 
 cloudinary:
-  cloud_name: ${CLOUDINARY_NAME}
-  api_key: ${CLOUDINARY_API_KEY}
-  api_secret: ${CLOUDINARY_API_SECRET}
+  cloud_name: dk6u26jg8
+  api_key: 127685684921193
+  api_secret: whL4chiuN7YkMMW7BPoj_6TCXMk
 
 jwt:
-  secret_key: ${JWT_SECRET_KEY}
+  secret_key: taideptrai_taideptrai_taideptrai_123456
 
 server:
   port: 8080

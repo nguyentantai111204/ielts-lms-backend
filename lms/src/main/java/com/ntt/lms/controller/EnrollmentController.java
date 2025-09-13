@@ -1,5 +1,6 @@
 package com.ntt.lms.controller;
 
+import com.ntt.lms.dto.EnrollmentRequestDTO;
 import com.ntt.lms.dto.StudentDto;
 import com.ntt.lms.pojo.Enrollment;
 import com.ntt.lms.service.EnrollmentService;
@@ -17,7 +18,7 @@ public class   EnrollmentController {
     private final EnrollmentService enrollmentService;
 
     @PostMapping("/enroll")
-    public ResponseEntity<String> enrollInCourse(@RequestBody Enrollment enrollment){
+    public ResponseEntity<String> enrollInCourse(@RequestBody EnrollmentRequestDTO enrollment){
         try {
             enrollmentService.enrollInCourse(enrollment);
             return ResponseEntity.ok("Sinh viên tham gia khóa học thành công");

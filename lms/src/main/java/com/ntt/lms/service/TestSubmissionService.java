@@ -1,5 +1,6 @@
 package com.ntt.lms.service;
 
+import com.ntt.lms.dto.HistoryTestDTO;
 import com.ntt.lms.dto.TestAnswerDTO;
 import com.ntt.lms.dto.TestSubmissionDTO;
 import com.ntt.lms.pojo.*;
@@ -30,6 +31,29 @@ public class TestSubmissionService {
 
     private final UserValidator userValidator;
     private final AdminValidator adminValidator;
+
+    public List<HistoryTestDTO> getSubmissionsByUser() {
+        Users user = JwtService.getCurrentUser();
+        List<TestSubmission> submissions = submissionRepo.findByUser(user);
+
+        if (submissions.isEmpty()) {
+            throw new RuntimeException("User này chưa có submission nào");
+        }
+
+        return submissions.stream()
+                .map(s -> new HistoryTestDTO(
+                        s.getSubmissionId(),
+                        s.getTest().getTitle(),
+                        s.getTest().getTestId(),
+                        s.getStartedAt(),
+                        s.getSubmittedAt(),
+                        s.getUser().getUserId(),
+                        s.getTotalScore()
+                ))
+                .toList();
+    }
+
+
 
     @Transactional
     public TestSubmissionDTO startTest(Test test, Users user) {
@@ -264,10 +288,8 @@ public class TestSubmissionService {
 
         if (submission == null) return null;
 
-        // Tạo DTO cơ bản
         TestSubmissionDTO dto = new TestSubmissionDTO(submission);
 
-        // Lấy danh sách answers và map sang DTO
         List<TestAnswerDTO> answerDTOs = answerRepo.findBySubmission(submission).stream()
                 .map(ans -> {
                     TestAnswerDTO aDto = new TestAnswerDTO();
@@ -285,7 +307,6 @@ public class TestSubmissionService {
 
         dto.setAnswers(answerDTOs);
 
-        // Optionally: tính thêm tổng số câu, số câu trả lời, số câu đúng
         dto.setTotalQuestions(answerDTOs.size());
         dto.setAnsweredQuestions((int) answerDTOs.stream().filter(a -> a.getUserAnswer() != null).count());
         dto.setCorrectAnswers((int) answerDTOs.stream().filter(a -> Boolean.TRUE.equals(a.getIsCorrect())).count());
@@ -336,7 +357,7 @@ public class TestSubmissionService {
         adminValidator.validateHasAdminPermistion(currentUser);
 
         // lấy tất cả submissions
-        List<TestSubmission> submissions = submissionRepo.findAll();
+        List<TestSubmission> submissions = submissionRepo.findByStatus(SubmissionStatus.GRADED);
 
         // cache tổng số câu hỏi cho từng test để tránh query nhiều lần
         Map<Integer, Integer> testQuestionCountCache = new HashMap<>();
